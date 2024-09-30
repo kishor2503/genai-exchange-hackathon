@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 load_dotenv('../.env')
 
 class ConsumeWiseCrew:
-        def __init__(self, food_item):
+        def __init__(self, personal_info, activities, food_item):
                 self.food_item = food_item
+                self.activities = activities
+                self.personal_info = personal_info
 
         def run(self):
                 
@@ -16,8 +18,13 @@ class ConsumeWiseCrew:
             tasks = Tasks()
 
             nutrition_facts_agent = agents.nutrition_facts_agent()
+            youtube_summary_agent = agents.youtube_video_summarizer()
+            analyser_agent = agents.analyser()
 
             nutrition_facts_task = tasks.nutrition_facts_task(nutrition_facts_agent, self.food_item)
+            youtube_summary_task = tasks.youtube_summary_task(youtube_summary_agent, self.food_item)
+            analyser_task = tasks.analyser_task(analyser_agent, self.food_item, self.activities, self.personal_info)
+
             
             crew = Crew(
                 agents=[nutrition_facts_agent],
