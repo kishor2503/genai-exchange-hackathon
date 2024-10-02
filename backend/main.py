@@ -18,20 +18,27 @@ class ConsumeWiseCrew:
             tasks = Tasks()
 
             nutrition_facts_agent = agents.nutrition_facts_agent()
+            youtube_video_list_agent = agents.youtube_video_list_agent()
             youtube_summary_agent = agents.youtube_summary_agent()
+            youtube_channel_agent = agents.youtube_channel_agent()
             analyser_agent = agents.analyser_agent()
 
             nutrition_facts_task = tasks.nutrition_facts_task(nutrition_facts_agent, self.input['data']['request_suggestion']['food_item'], input)
-            youtube_summary_task = tasks.youtube_summary_task(youtube_summary_agent, self.input['data']['request_suggestion']['food_item'], input)
-            analyser_task = tasks.analyser_task(analyser_agent, input["data"]["request_suggestion"]["food_item"], input["data"]["web_summary"], input["data"]["youtube_summary"], input["data"]["activities"], input["data"]["personal_info"])
+            youtube_video_list_task = tasks.youtube_video_list_task(youtube_video_list_agent, self.input['data']['request_suggestion']['food_item'])
+            youtube_summary_task = tasks.youtube_summary_task(youtube_summary_agent, [youtube_video_list_task], self.input['data']['request_suggestion']['food_item'], input)
+            youtube_channel_task = tasks.youtube_channel_summary_task(youtube_channel_agent, self.input['data']['request_suggestion']['food_item'], input)
+            
+            analyser_task_context = [nutrition_facts_task, youtube_summary_task, youtube_channel_task]
+
+            analyser_task = tasks.analyser_task(analyser_agent, analyser_task_context, input["data"]["request_suggestion"]["food_item"], input["data"]["web_summary"], input["data"]["youtube_summary"], input["data"]["activities"], input["data"]["personal_info"])
             
             crew = Crew(
                 # agents = [[nutrition_facts_agent,youtube_summary_agent]],
                 # tasks = [[nutrition_facts_task, youtube_summary_task]],
-                # agents = [youtube_summary_agent],
-                # tasks = [youtube_summary_task],
-                agents = [analyser_agent],
-                tasks = [analyser_task],
+                # agents = [youtube_channel_agent],
+                # tasks = [youtube_channel_task],
+                agents = [youtube_video_list_agent, nutrition_facts_agent, youtube_summary_agent, youtube_channel_agent, analyser_agent],
+                tasks = [youtube_video_list_task, nutrition_facts_task, youtube_channel_task, youtube_summary_task, analyser_task],
                 manager_llm = ChatOpenAI(model="gpt-4o-mini", 
                            temperature=0.7),
                 process = Process.hierarchical,

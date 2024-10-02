@@ -17,7 +17,7 @@ class Tasks():
                      expected_output="Detailed nutrition facts about the food item", output_file="nutrition_facts_web.json")
      
      
-    def youtube_summary_task(self, agent, item, input):
+    def youtube_summary_task(self, agent, task_context, item, input):
       """
       Creates a Task for summarizing YouTube videos about a specified food item.
 
@@ -43,16 +43,32 @@ class Tasks():
       # Extract the top 3 video URLs from the search results
       # top_3_video_urls = [result.url for result in search_results[:3]]
 
-      top_3_video_urls = ["https://youtu.be/0Z6ty4gHhrA?si=ZsXWIqvAjE1PtFsJ"]
+      # top_3_video_urls = ["https://youtu.be/0Z6ty4gHhrA?si=ZsXWIqvAjE1PtFsJ"]
 
       # Create the Task with the updated description and tools
       task = Task(
           description=dedent(f"""
               Your task is to provide detailed summary of the nutritional facts about the specified 
-              food item from the following YouTube videos:
+              food item {item} from the context of the previous tasks.
+              The final answer must be a detailed report.
+              {self.__tip_section()}
+              Your output format must be valid python dictionary with the following keys - health benefits, is_it_good_to_have, video summary and references.
+              Incase if you face code related errors or bugs, please don't attempt to solve it. Append the results as a dictionary with the key youtube_summary to the input {input} dictionary.
+          """),
+          agent=agent,
+          context=task_context,
+          expected_output="Detailed nutrition facts about the food item",
+          output_file="nutrition_facts_youtube_video_summary.json"
+      )
 
-              {top_3_video_urls}
+      return task
+    
+    def youtube_channel_summary_task(self, agent, item, input):
 
+      task = Task(
+          description=dedent(f"""
+              Your task is to provide detailed summary of the nutritional facts about the specified 
+              food item {item} from the context of the entire videos from the channel.
               The final answer must be a detailed report.
               {self.__tip_section()}
               Your output format must be valid python dictionary with the following keys - health benefits, is_it_good_to_have, video summary and references.
@@ -60,16 +76,28 @@ class Tasks():
           """),
           agent=agent,
           expected_output="Detailed nutrition facts about the food item",
-          output_file="nutrition_facts_youtube.json",
-          tools=[
-              # Include the YoutubeVideoSearchTool as a tool for the Task
-              youtube_search_tool
-          ]
+          output_file="nutrition_facts_youtube_video_summary.json"
+      )
+
+      return task
+    
+    def youtube_video_list_task(self, agent, item):
+
+      task = Task(
+          description=dedent(f"""
+              Your task is to provide us with the top three videos from youtube for the specified food item {item}.
+              The final answer must contain a python list of three youtube videos.
+              {self.__tip_section()}
+              Incase if you face code related errors or bugs, please don't attempt to solve it, give the video links to random videos on the food item. Append the results as a dictionary with the key youtube_summary to the input {input} dictionary.
+          """),
+          agent=agent,
+          expected_output="Detailed nutrition facts about the food item",
+          output_file="youtube_videos_list.json"
       )
 
       return task
      
-    def analyser_task(self, agent, item, web_summary, youtube_summary, activities, personal_info):
+    def analyser_task(self, agent, task_context, item, web_summary, youtube_summary, activities, personal_info):
       return Task(
           description=dedent(f"""
           Your task is to provide a comprehensive analysis of how much quantity of the item, {item}, this person can consume based on the nutritional facts {web_summary} and the YouTube videos summary {youtube_summary}. Consider the user's personal information such as {personal_info}, their workouts, and previous activities {activities}.
@@ -99,8 +127,9 @@ class Tasks():
           If you encounter any code-related errors or bugs, please do not attempt to solve them. Simply report the issue and provide the necessary details.
           """),
           agent=agent,
+          context = task_context,
           expected_output="Detailed suggestions & workouts for the day along with the alernate food suggestions",
-          output_file="analyser_output.txt"
+          output_file="analyser_output.json"
       )
      
      

@@ -23,6 +23,17 @@ class Agents():
             # llm=llm,
             verbose=True
         )
+   def youtube_video_list_agent(self):
+            return Agent(
+                role='Find top three videos from YouTube on the given food item',
+                goal='Find top three videos from YouTube on the given food item. Return the top three videos as a python list. Just list down the list of videos',
+                backstory="""You have better understanding on the seo's involving google rank""",
+                tools=[
+                    SearchTools.search_internet
+                ],
+                # llm=llm,
+                verbose=True
+            )
    
    def youtube_summary_agent(self):
     """
@@ -50,17 +61,18 @@ class Agents():
 
     return agent
    
-#    def youtube_channel_summarizer(self):
-#         return Agent(
-#             role='YouTube Summarizer on the food items based on the nutritional values, ingredients and health benefits and append the results to the input json as a file',
-#             goal='Provide detailed summary from the youtube videos and append the results to the input json as a file',
-#             backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
-#             tools=[
-#                 YoutubeChannelSearchTool.youtube_channel_search,
-#             ],
-#             # llm=llm,
-#             verbose=True
-#         )
+   def youtube_channel_agent(self):
+        youtube_channel_tool = YoutubeChannelSearchTool()    
+        return Agent(
+            role='Summarize the entire content of a YouTube channel and get the benefits and so on the food items',
+            goal='Provide detailed summary from the youtube videos and append the results to the input json as a file',
+            backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
+            tools=[
+                youtube_channel_tool
+            ],
+            # llm=llm,
+            verbose=True
+        )
    
    def analyser_agent(self):
     scrape_tool = ScrapeWebsiteTool()
@@ -68,8 +80,9 @@ class Agents():
         role="Analyses if the food is good to consume and how much quantity to consume, considering user's personal information, activities such as past food consumption & workouts, and nutritional data. Also suggest three other alernate food recommendations with nutrional data. Also suggest the workouts for that day",
         goal="Provide a detailed analysis of the quantity of food to consume based on nutritional content, dietiary recommendations, personal workouts, and physical condition.  Also suggest three other alernate food recommendations with nutrional data. Also suggest the workouts for that day",
         backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items, user behavior, and personalized health recommendations.""",
-        tools=[
+        tools=[ 
             SearchTools.search_internet,
-            scrape_tool],
+            scrape_tool
+            ],
         verbose=True
     )
