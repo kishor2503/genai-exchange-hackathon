@@ -1,6 +1,8 @@
 from crewai import Agent
 from tools.search_tools import SearchTools
-from tools.youtube_tools import YoutubeVideoSearchTool
+from crewai_tools import YoutubeVideoSearchTool, YoutubeChannelSearchTool
+from crewai_tools import ScrapeWebsiteTool, FileWriterTool
+
 import os
 # from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -9,37 +11,65 @@ import os
  
 class Agents(): 
    def nutrition_facts_agent(self):
+        scrape_tool = ScrapeWebsiteTool()
         return Agent(
-            role='Expert report on the nutritional facts of a given',
-            goal='Provide detailed facts on the nutrition of a food item',
+            role='Expert report on the nutritional facts of a given and append the results to the input json as a file',
+            goal='Provide detailed facts on the nutrition of a food item and append the results to the input json as a file',
             backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
             tools=[
                 SearchTools.search_internet,
+                scrape_tool
             ],
             # llm=llm,
             verbose=True
         )
    
-   def youtube_video_summarizer(self):
-        return Agent(
-            role='YouTube Summarizer on the food items based on the nutritional values, ingredients and health benefits',
-            goal='Provide detailed summary from the youtube videos',
-            backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
-            tools=[
-                YoutubeVideoSearchTool.youtube_search,
-            ],
-            # llm=llm,
-            verbose=True
-        )
+   def youtube_summary_agent(self):
+    """
+    Creates an Agent for summarizing YouTube videos about food items.
+
+    Args:
+        self: The instance of the class calling this function.
+
+    Returns:
+        An Agent instance configured for YouTube video summarization.
+    """
+
+    youtube_search_tool = YoutubeVideoSearchTool()
+
+    # Create an Agent instance with the specified role, goal, backstory, and tools
+    agent = Agent(
+        role="YouTube Summarizer on the food items based on the nutritional values, ingredients and health benefits and append the results to the input json as a file",
+        goal="Provide detailed summary from the youtube videos and append the results to the input json as a file",
+        backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
+        tools=[
+            youtube_search_tool
+        ],
+        verbose=True
+    )
+
+    return agent
    
-   def analyser(self):
-        return Agent(
-            role='Analyses if the food is good to consume and how much quantity to consume.',
-            goal='Provide detailed explanation of the quantity of the food to consume based on the nutritional contents of the food, the dietitian recommendedations from youtube, personal workout and the physical condition of the person',
-            backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
-            # tools=[
-            #     YoutubeVideoSearchTool.youtube_search,
-            # ],
-            # llm=llm,
-            verbose=True
-        )
+#    def youtube_channel_summarizer(self):
+#         return Agent(
+#             role='YouTube Summarizer on the food items based on the nutritional values, ingredients and health benefits and append the results to the input json as a file',
+#             goal='Provide detailed summary from the youtube videos and append the results to the input json as a file',
+#             backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items.""",
+#             tools=[
+#                 YoutubeChannelSearchTool.youtube_channel_search,
+#             ],
+#             # llm=llm,
+#             verbose=True
+#         )
+   
+   def analyser_agent(self):
+    scrape_tool = ScrapeWebsiteTool()
+    return Agent(
+        role="Analyses if the food is good to consume and how much quantity to consume, considering user's personal information, activities such as past food consumption & workouts, and nutritional data. Also suggest three other alernate food recommendations with nutrional data. Also suggest the workouts for that day",
+        goal="Provide a detailed analysis of the quantity of food to consume based on nutritional content, dietiary recommendations, personal workouts, and physical condition.  Also suggest three other alernate food recommendations with nutrional data. Also suggest the workouts for that day",
+        backstory="""Assume you are an experienced dietitian with deep knowledge in the nutritional facts of food items, user behavior, and personalized health recommendations.""",
+        tools=[
+            SearchTools.search_internet,
+            scrape_tool],
+        verbose=True
+    )
